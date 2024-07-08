@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Documentation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        h1 {
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+        }
+        h2 {
+            margin-top: 20px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <h1>API Documentation</h1>
+
+    {{!-- <h2>Companies</h2>
+    <h3>POST /api/v1/company</h3>
+    <p>Create a new company with company_name.</p>
+    <pre>
+        curl -X POST -H "Content-Type: application/json" -d '{"company_name": "Company Name"}' http://localhost:3000/api/v1/company
+    </pre>
+
+    <h3>GET /api/v1/companies</h3>
+    <p>Get all companies.</p>
+    <pre>
+        curl http://localhost:3000/api/v1/companies
+    </pre>
+
+    <h3>GET /api/v1/company/:id</h3>
+    <p>Get company by ID.</p>
+    <pre>
+        curl http://localhost:3000/api/v1/company/1
+    </pre>
+
+    <h3>PUT /api/v1/company/:id</h3>
+    <p>Update company by ID.</p>
+    <pre>
+        curl -X PUT -H "Content-Type: application/json" -d '{"company_name": "Updated Name"}' http://localhost:3000/api/v1/company/1
+    </pre>
+
+    <h3>DELETE /api/v1/company/:id</h3>
+    <p>Delete company by ID.</p>
+    <pre>
+        curl -X DELETE http://localhost:3000/api/v1/company/1
+    </pre> --}}
+
+    <h2>Locations</h2>
+    <h3>POST /api/v1/location</h3>
+    <p>Create a new location with company_id, location_name, location_country, location_city, location_meta.</p>
+    <pre>
+        curl -X POST -H "Content-Type: application/json" -d '{"company_id": 1, "location_name": "Location Name", "location_country": "Country", "location_city": "City", "location_meta": "Meta"}' http://localhost:3000/api/v1/location
+    </pre>
+
+    <h3>GET /api/v1/locations</h3>
+    <p>Get all locations.</p>
+    <pre>
+        curl http://localhost:3000/api/v1/locations
+    </pre>
+
+    <h3>GET /api/v1/location/:id</h3>
+    <p>Get location by ID.</p>
+    <pre>
+        curl http://localhost:3000/api/v1/location/1
+    </pre>
+
+    <h3>PUT /api/v1/location/:id</h3>
+    <p>Update location by ID.</p>
+    <pre>
+        curl -X PUT -H "Content-Type: application/json" -d '{"location_name": "Updated Location Name", "location_country": "Updated Country", "location_city": "Updated City", "location_meta": "Updated Meta"}' http://localhost:3000/api/v1/location/1
+    </pre>
+
+    <h3>DELETE /api/v1/location/:id</h3>
+    <p>Delete location by ID.</p>
+    <pre>
+        curl -X DELETE http://localhost:3000/api/v1/location/1
+    </pre>
+
+    <h2>Sensors</h2>
+    <h3>POST /api/v1/sensor</h3>
+    <p>Create a new sensor with location_id, sensor_name, sensor_category, sensor_meta.</p>
+    <pre>
+        curl -X POST -H "Content-Type: application/json" -d '{"location_id": 1, "sensor_name": "Sensor Name", "sensor_category": "Category", "sensor_meta": "Meta"}' http://localhost:3000/api/v1/sensor
+    </pre>
+
+    <h3>GET /api/v1/sensors</h3>
+    <p>Get all sensors.</p>
+    <pre>
+        curl http://localhost:3000/api/v1/sensors
+    </pre>
+
+    <h3>GET /api/v1/sensor/:id</h3>
+    <p>Get sensor by ID.</p>
+    <pre>
+        curl http://localhost:3000/api/v1/sensor/1
+    </pre>
+
+    <h3>PUT /api/v1/sensor/:id</h3>
+    <p>Update sensor by ID.</p>
+    <pre>
+        curl -X PUT -H "Content-Type: application/json" -d '{"sensor_name": "Updated Sensor Name", "sensor_category": "Updated Category", "sensor_meta": "Updated Meta"}' http://localhost:3000/api/v1/sensor/1
+    </pre>
+
+    <h3>DELETE /api/v1/sensor/:id</h3>
+    <p>Delete sensor by ID.</p>
+    <pre>
+        curl -X DELETE http://localhost:3000/api/v1/sensor/1
+    </pre>
+
+    <h2>Sensor Data</h2>
+    <h3>POST /api/v1/sensor_data</h3>
+    <p>Insert sensor data using sensor_api_key for authorization.</p>
+    <pre>
+        curl -X POST -H "Content-Type: application/json" -d '{"api_key": "<sensor_api_key>", "json_data": [{"data_key": "temperature", "data_value": "25"}, {"data_key": "humidity", "data_value": "50"}]}' http://localhost:3000/api/v1/sensor_data
+    </pre>
+
+    <h3>GET /api/v1/sensor_data?company_api_key=&amp;from=&amp;to=&amp;sensor_id=</h3>
+    <p>Get sensor data filtered by company_api_key, timestamp range (from, to), and sensor_id(s).</p>
+    <pre>
+        curl "http://localhost:3000/api/v1/sensor_data?company_api_key=<company_api_key>&from=<from_timestamp>&to=<to_timestamp>&sensor_id=<sensor_id1>&sensor_id=<sensor_id2>"
+    </pre>
+
+</body>
+</html>
