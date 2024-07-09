@@ -7,8 +7,8 @@ CREATE TABLE Admin (
 -- Creación de la tabla Company
 CREATE TABLE Company (
     ID INTEGER PRIMARY KEY AUTOINCREMENT,
-    company_name TEXT NOT NULL,
-    company_api_key TEXT NOT NULL
+    company_name TEXT NOT NULL UNIQUE,
+    company_api_key TEXT
 );
 
 -- Creación de la tabla Location
@@ -28,7 +28,7 @@ CREATE TABLE Sensor (
     sensor_name TEXT NOT NULL,
     sensor_category TEXT NOT NULL,
     sensor_meta TEXT,
-    sensor_api_key TEXT NOT NULL,
+    sensor_api_key TEXT,
     FOREIGN KEY (location_id) REFERENCES Location(company_id)
 );
 

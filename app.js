@@ -3,7 +3,6 @@ const exphbs = require('express-handlebars');
 const sqlite3 = require('sqlite3').verbose();
 const bodyParser = require('body-parser');
 const path = require('path');
-const crypto = require('crypto');
 const handlebarsHelpers = require('handlebars-helpers')();
 
 const app = express();
@@ -38,15 +37,74 @@ app.get('/api-docs', (req, res) => {
     res.render('api');
 });
 
-// Crear nueva ubicación
-app.post('/api/v1/location', (req, res) => {
-    const { company_id, location_name, location_country, location_city, location_meta } = req.body;
+// Crear nuevo admin
+app.post('/api/v1/admin', (req, res) => {
+    const { Username, Password } = req.body;
 
-    db.run('INSERT INTO Location (company_id, location_name, location_country, location_city, location_meta) VALUES (?, ?, ?, ?, ?)', [company_id, location_name, location_country, location_city, location_meta], function (err) {
+    db.run('INSERT INTO Admin (Username, Password) VALUES (?, ?)', [Username, Password], function (err) {
         if (err) {
             return res.status(500).json({ error: err.message });
         }
-        res.status(201).json({ id: this.lastID });
+        res.status(201).json({ success: 'true' });
+    });
+});
+
+// Obtener todos los admin
+app.get('/api/v1/admins', (req, res) => {
+    db.all('SELECT Username FROM Admin', (err, rows) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        res.json(rows);
+    });
+});
+
+// Crear nueva compañia
+app.post('/api/v1/company', (req, res) => {
+    const { company_name } = req.body;
+
+    db.run('INSERT INTO Company (company_name) VALUES (?)', [company_name], function (err) {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        // Obtener el ID de la compañía recién insertada
+        const companyId = this.lastID;
+
+        // Consultar para obtener el company_api_key
+        db.get('SELECT company_api_key FROM Company WHERE ID = ?', [companyId], (err, row) => {
+            if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+            res.status(201).json({ success: 'true', company_api_key: row.company_api_key });
+        });
+    });
+});
+
+// Obtener todas las compañias
+app.get('/api/v1/companies', (req, res) => {
+    db.all('SELECT ID, company_name FROM Company', (err, rows) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        res.json(rows);
+    });
+});
+
+// Crear nueva ubicación
+app.post('/api/v1/location', (req, res) => {
+    const { company_api_key, company_id, location_name, location_country, location_city, location_meta } = req.body;
+
+    // Verificar la validez de company_api_key
+    db.get('SELECT * FROM Company WHERE company_api_key = ?', [company_api_key], (err, row) => {
+        if (err || !row) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+        db.run('INSERT INTO Location (company_id, location_name, location_country, location_city, location_meta) VALUES (?, ?, ?, ?, ?)', [company_id, location_name, location_country, location_city, location_meta], function (err) {
+            if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+            res.status(201).json({ id: this.lastID });
+        });
     });
 });
 
@@ -74,44 +132,72 @@ app.get('/api/v1/location/:id', (req, res) => {
 // Actualizar una ubicación
 app.put('/api/v1/location/:id', (req, res) => {
     const { id } = req.params;
-    const { location_name, location_country, location_city, location_meta } = req.body;
+    const {company_api_key, location_name, location_country, location_city, location_meta } = req.body;
 
-    db.run('UPDATE Location SET location_name = ?, location_country = ?, location_city = ?, location_meta = ? WHERE rowid = ?', [location_name, location_country, location_city, location_meta, id], function (err) {
-        if (err) {
-            return res.status(500).json({ error: err.message });
+    // Verificar la validez de company_api_key
+    db.get('SELECT * FROM Company WHERE company_api_key = ?', [company_api_key], (err, row) => {
+        if (err || !row) {
+            return res.status(401).json({ error: 'Unauthorized' });
         }
-        res.json({ changes: this.changes });
-    });
+        db.run('UPDATE Location SET location_name = ?, location_country = ?, location_city = ?, location_meta = ? WHERE rowid = ?', [location_name, location_country, location_city, location_meta, id], function (err) {
+            if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+            res.json({ changes: this.changes });
+        });
+    });    
 });
 
 // Eliminar una ubicación
 app.delete('/api/v1/location/:id', (req, res) => {
     const { id } = req.params;
+    const { company_api_key } = req.body;
 
-    db.run('DELETE FROM Location WHERE rowid = ?', [id], function (err) {
-        if (err) {
-            return res.status(500).json({ error: err.message });
+    // Verificar la validez de company_api_key
+    db.get('SELECT * FROM Company WHERE company_api_key = ?', [company_api_key], (err, row) => {
+        if (err || !row) {
+            return res.status(401).json({ error: 'Unauthorized' });
         }
-        res.json({ changes: this.changes });
-    });
+        db.run('DELETE FROM Location WHERE rowid = ?', [id], function (err) {
+            if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+            res.json({ changes: this.changes });
+        });
+    });        
 });
 
 // Crear nuevo sensor
 app.post('/api/v1/sensor', (req, res) => {
-    const { location_id, sensor_name, sensor_category, sensor_meta } = req.body;
-    const sensor_api_key = crypto.randomBytes(16).toString('hex');
+    const { company_api_key, location_id, sensor_name, sensor_category, sensor_meta } = req.body;
 
-    db.run('INSERT INTO Sensor (location_id, sensor_name, sensor_category, sensor_meta, sensor_api_key) VALUES (?, ?, ?, ?, ?)', [location_id, sensor_name, sensor_category, sensor_meta, sensor_api_key], function (err) {
-        if (err) {
-            return res.status(500).json({ error: err.message });
+    // Verificar la validez de company_api_key
+    db.get('SELECT * FROM Company WHERE company_api_key = ?', [company_api_key], (err, row) => {
+        if (err || !row) {
+            return res.status(401).json({ error: 'Unauthorized' });
         }
-        res.status(201).json({ id: this.lastID, sensor_api_key });
+        db.run('INSERT INTO Sensor (location_id, sensor_name, sensor_category, sensor_meta) VALUES (?, ?, ?, ?)', [location_id, sensor_name, sensor_category, sensor_meta], function (err) {
+            if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+            // Obtener el ID del sensor recién insertado
+            const sensor_id = this.lastID;
+
+            // Consultar para obtener el sensor_api_key
+            db.get('SELECT sensor_api_key FROM Sensor WHERE sensor_id = ?', [sensor_id], (err, row) => {
+                if (err) {
+                    return res.status(500).json({ error: err.message });
+                }
+                res.status(201).json({ success: 'true', sensor_api_key: row.sensor_api_key });
+            });
+        });
     });
 });
 
+
 // Obtener todos los sensores
 app.get('/api/v1/sensors', (req, res) => {
-    db.all('SELECT * FROM Sensor', (err, rows) => {
+    db.all('SELECT location_id, sensor_id, sensor_name, sensor_category, sensor_meta FROM Sensor', (err, rows) => {
         if (err) {
             return res.status(500).json({ error: err.message });
         }
@@ -122,7 +208,7 @@ app.get('/api/v1/sensors', (req, res) => {
 // Obtener un sensor por ID
 app.get('/api/v1/sensor/:id', (req, res) => {
     const { id } = req.params;
-    db.get('SELECT * FROM Sensor WHERE sensor_id = ?', [id], (err, row) => {
+    db.get('SELECT location_id, sensor_id, sensor_name, sensor_category, sensor_meta FROM Sensor WHERE sensor_id = ?', [id], (err, row) => {
         if (err) {
             return res.status(500).json({ error: err.message });
         }
@@ -133,26 +219,39 @@ app.get('/api/v1/sensor/:id', (req, res) => {
 // Actualizar un sensor
 app.put('/api/v1/sensor/:id', (req, res) => {
     const { id } = req.params;
-    const { sensor_name, sensor_category, sensor_meta } = req.body;
+    const { company_api_key, sensor_name, sensor_category, sensor_meta } = req.body;
 
-    db.run('UPDATE Sensor SET sensor_name = ?, sensor_category = ?, sensor_meta = ? WHERE sensor_id = ?', [sensor_name, sensor_category, sensor_meta, id], function (err) {
-        if (err) {
-            return res.status(500).json({ error: err.message });
+    // Verificar la validez de company_api_key
+    db.get('SELECT * FROM Company WHERE company_api_key = ?', [company_api_key], (err, row) => {
+        if (err || !row) {
+            return res.status(401).json({ error: 'Unauthorized' });
         }
-        res.json({ changes: this.changes });
+        db.run('UPDATE Sensor SET sensor_name = ?, sensor_category = ?, sensor_meta = ? WHERE sensor_id = ?', [sensor_name, sensor_category, sensor_meta, id], function (err) {
+            if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+            res.json({ changes: this.changes });
+        });
     });
 });
 
 // Eliminar un sensor
 app.delete('/api/v1/sensor/:id', (req, res) => {
     const { id } = req.params;
-
-    db.run('DELETE FROM Sensor WHERE sensor_id = ?', [id], function (err) {
-        if (err) {
-            return res.status(500).json({ error: err.message });
+    const { company_api_key } = req.body;
+    // Verificar la validez de company_api_key
+    db.get('SELECT * FROM Company WHERE company_api_key = ?', [company_api_key], (err, row) => {
+        if (err || !row) {
+            return res.status(401).json({ error: 'Unauthorized' });
         }
-        res.json({ changes: this.changes });
+        db.run('DELETE FROM Sensor WHERE sensor_id = ?', [id], function (err) {
+            if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+            res.json({ changes: this.changes });
+        });
     });
+    
 });
 
 // Insertar datos del sensor
@@ -188,7 +287,8 @@ app.post('/api/v1/sensor_data', (req, res) => {
 
 // Consultar datos del sensor
 app.get('/api/v1/sensor_data', (req, res) => {
-    const { company_api_key, from, to, sensor_id } = req.query;
+    const { company_api_key } = req.headers;
+    const { from, to, sensor_id } = req.query;
 
     // Convertir from y to a timestamps si es necesario
     const fromTimestamp = parseInt(from, 10);
