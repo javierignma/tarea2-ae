@@ -1,12 +1,14 @@
 const express = require('express');
 const exphbs = require('express-handlebars');
 const sqlite3 = require('sqlite3').verbose();
+const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
 const path = require('path');
 const handlebarsHelpers = require('handlebars-helpers')();
 
 const app = express();
 const db = new sqlite3.Database('./db/iot_api.db');
+const activeSessions = {};
 
 // Configuración de Handlebars
 app.engine('hbs', exphbs.engine({
@@ -27,18 +29,26 @@ app.set('view engine', 'hbs');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Clave secreta para firmar los tokens
+const SECRET_KEY = 'eaCtfdrrayY0h12MWkcyVorAfM9Pf2lrKeXQAroaxho5hd4GgjOCvDY//w7+tBoMP2IJMpbFLGu1mw/d0y2Bew==';
+
 // Ruta de inicio
 app.get('/', (req, res) => {
     res.render('home');
 });
 
 // Ruta para la página de documentación de la API
-app.get('/api-docs', (req, res) => {
+app.get('/api/v1', (req, res) => {
     res.render('api');
 });
 
+// Ruta para la página de documentación de la API
+app.get('/api/v1/es', (req, res) => {
+    res.render('home');
+});
+
 // Crear nuevo admin
-app.post('/api/v1/admin', (req, res) => {
+app.post('/api/v1/register', (req, res) => {
     const { Username, Password } = req.body;
 
     db.run('INSERT INTO Admin (Username, Password) VALUES (?, ?)', [Username, Password], function (err) {
@@ -50,7 +60,7 @@ app.post('/api/v1/admin', (req, res) => {
 });
 
 // Obtener todos los admin
-app.get('/api/v1/admins', (req, res) => {
+app.get('/api/v1/admins', isAuthenticated, (req, res) => {
     db.all('SELECT Username FROM Admin', (err, rows) => {
         if (err) {
             return res.status(500).json({ error: err.message });
@@ -59,8 +69,47 @@ app.get('/api/v1/admins', (req, res) => {
     });
 });
 
+// Acceder a la cuenta
+app.post('/api/v1/login', (req, res) => {
+    const { Username, Password } = req.body;
+
+    // Verificar si el usuario ya tiene una sesión activa
+    if (activeSessions[Username]) {
+        return res.status(400).json({ error: 'User already logged in.' });
+    }
+
+    // Consultar para obtener el usuario indicado
+    db.get("SELECT Username FROM Admin WHERE Username = ? AND Password = ?", [Username, Password], (err, row) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        if (!row) {
+            return res.status(401).json({ error: 'Incorrect username or password.' });
+        }
+
+        // Crear el token
+        const token = jwt.sign({ user: row.Username }, SECRET_KEY, { expiresIn: '1h' });
+
+        // Marcar sesión como activa
+        activeSessions[Username] = { token: token };
+
+        // Verificar si la sesión se guarda correctamente
+        res.status(200).json({ message: 'Logged in successfully!', session: `${token}` });
+    });
+});
+
+// Cierre de sesión
+app.get('/api/v1/logout', isAuthenticated, (req, res) => {
+    const { user } = req;
+
+    // Invalidar sesión
+    delete activeSessions[user];
+
+    res.status(200).json({ message: 'Logged out successfully.' });
+});
+
 // Crear nueva compañia
-app.post('/api/v1/company', (req, res) => {
+app.post('/api/v1/company', isAuthenticated, (req, res) => {
     const { company_name } = req.body;
 
     db.run('INSERT INTO Company (company_name) VALUES (?)', [company_name], function (err) {
@@ -81,7 +130,7 @@ app.post('/api/v1/company', (req, res) => {
 });
 
 // Obtener todas las compañias
-app.get('/api/v1/companies', (req, res) => {
+app.get('/api/v1/companies', isAuthenticated, (req, res) => {
     db.all('SELECT ID, company_name FROM Company', (err, rows) => {
         if (err) {
             return res.status(500).json({ error: err.message });
@@ -364,6 +413,30 @@ app.get('/api/v1/sensor_data', (req, res) => {
         });
     });
 });
+
+// Middleware para verificar el token
+function isAuthenticated(req, res, next) {
+    const token = req.headers['authorization'];
+
+    if (!token) {
+        return res.status(401).json({ error: 'No token provided.' });
+    }
+
+    jwt.verify(token, SECRET_KEY, (err, decoded) => {
+        if (err) {
+            return res.status(401).json({ error: 'Failed to authenticate token.' });
+        }
+
+        req.user = decoded.user;
+
+        // Verificar si la sesión está activa
+        if (!activeSessions[req.user]) {
+            return res.status(401).json({ error: 'Session expired or invalid.' });
+        }
+
+        next();
+    });
+} 
 
 // Iniciar el servidor
 const PORT = process.env.PORT || 3000;

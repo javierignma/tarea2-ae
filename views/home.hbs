@@ -1,2 +1,128 @@
-<h1>Bienvenido a la API REST</h1>
-<p>Utilice los endpoints proporcionados para interactuar con la API.</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Documentation</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h2 { color: #2c3e50; }
+        pre { background: #ecf0f1; padding: 10px; border-radius: 5px; }
+        .section { margin-bottom: 40px; }
+    </style>
+</head>
+<body>
+    <h1>Documentación de la API</h1>
+
+    <h2>Endpoints</h2>
+
+    <h3>/api/v1/register</h3>
+    <p>Crear un nuevo usuario administrador.</p>
+    <pre><code>curl -X POST /api/v1/register -d '{"Username": "ejemplo", "Password": "contraseña"}' -H 'Content-Type: application/json'</code></pre>
+    <p>Salida:</p>
+    <pre><code>{"success": true}</code></pre>
+
+    <h3>/api/v1/admins</h3>
+    <p>Obtener todos los usuarios administradores.</p>
+    <pre><code>curl -H "Authorization: Token_Autorizacion" /api/v1/admins</code></pre>
+    <p>Salida:</p>
+    <pre><code>[{"Username": "admin1"}, {"Username": "admin2"}, ...]</code></pre>
+
+    <h3>/api/v1/login</h3>
+    <p>Autenticar e iniciar sesión de un usuario.</p>
+    <pre><code>curl -X POST /api/v1/login -d '{"Username": "ejemplo", "Password": "contraseña"}' -H 'Content-Type: application/json'</code></pre>
+    <p>Salida:</p>
+    <pre><code>{message: 'Logged in successfully!', session: 'token' }</code></pre>
+
+    <h3>/api/v1/logout</h3>
+    <p>Cerrar sesión del usuario autenticado.</p>
+    <pre><code>curl -H "Authorization: Token_Autorizacion" /api/v1/logout</code></pre>
+    <p>Salida:</p>
+    <pre><code>{"message": "Logged out successfully."}</code></pre>
+
+    <h3>/api/v1/company</h3>
+    <p>Crear una nueva empresa.</p>
+    <pre><code>curl -H "Authorization: Token_Autorizacion" -X POST /api/v1/company -d '{"company_name": "Nombre de Ejemplo"}' -H 'Content-Type: application/json'</code></pre>
+    <p>Salida:</p>
+    <pre><code>{"success": true, "company_api_key": "clave_generada"}</code></pre>
+
+    <h3>/api/v1/companies</h3>
+    <p>Obtener todas las empresas.</p>
+    <pre><code>curl -H "Authorization: Token_Autorizacion" /api/v1/companies</code></pre>
+    <p>Salida:</p>
+    <pre><code>[{"ID": 1, "company_name": "Empresa 1"}, {"ID": 2, "company_name": "Empresa 2"}, ...]</code></pre>
+
+    <h3>/api/v1/location</h3>
+    <p>Crear una nueva ubicación.</p>
+    <pre><code>curl -X POST /api/v1/location -d '{"company_api_key": "api_key", "company_id": 1, "location_name": "Location 1", "location_country": "Country", "location_city": "City", "location_meta": "Meta"}' -H 'Content-Type: application/json'</code></pre>
+    <p>Salida:</p>
+    <pre><code>{"id": 1}</code></pre>
+
+    <h3>/api/v1/locations</h3>
+    <p>Obtener todas las ubicaciones.</p>
+    <pre><code>curl /api/v1/locations?company_api_key=clave_api</code></pre>
+    <p>Salida:</p>
+    <pre><code>[{"ID": 1, "location_name": "Ubicación 1", "location_country": "País", "location_city": "Ciudad", "location_meta": "Meta"}, {"ID": 2, "location_name": "Ubicación 2", ...}</code></pre>
+
+    <h3>/api/v1/location/:id (GET)</h3>
+    <p>Obtener una ubicación por ID.</p>
+    <pre><code>curl /api/v1/location/1?company_api_key=clave_api</code></pre>
+    <p>Salida:</p>
+    <pre><code>{"ID": 1, "location_name": "Ubicación 1", "location_country": "País", "location_city": "Ciudad", "location_meta": "Meta"}</code></pre>
+
+    <h3>/api/v1/location/:id (PUT)</h3>
+    <p>Actualizar una ubicación.</p>
+    <pre><code>curl -X PUT /api/v1/location/:id -d '{"company_api_key": "clave_api", "location_name": "Nombre de Ubicación Actualizado", "location_country": "País Actualizado", "location_city": "Ciudad Actualizada", "location_meta": "Meta Actualizado"}' -H 'Content-Type: application/json'</code></pre>
+    <p>Salida:</p>
+    <pre><code>{"changes": 1}</code></pre>
+
+    <h3>/api/v1/location/:id (DELETE)</h3>
+    <p>Eliminar una ubicación.</p>
+    <pre><code>curl -X DELETE /api/v1/location/:id -d '{"company_api_key": "clave_api"}' -H 'Content-Type: application/json'</code></pre>
+    <p>Salida:</p>
+    <pre><code>{"changes": 1}</code></pre>
+
+    <h3>/api/v1/sensor</h3>
+    <p>Crear un nuevo sensor.</p>
+    <pre><code>curl -X POST /api/v1/sensor -d '{"company_api_key": "clave_api", "location_id": 1, "sensor_name": "Sensor 1", "sensor_category": "Categoría", "sensor_meta": "Meta"}' -H 'Content-Type: application/json'</code></pre>
+    <p>Salida:</p>
+    <pre><code>{"success": true, "sensor_api_key": "clave_generada"}</code></pre>
+
+    <h3>/api/v1/sensors</h3>
+    <p>Obtener todos los sensores.</p>
+    <pre><code>curl /api/v1/sensors?company_api_key=clave_api</code></pre>
+    <p>Salida:</p>
+    <pre><code>[{"location_id": 1, "sensor_id": 1, "sensor_name": "Sensor 1", "sensor_category": "Categoría", "sensor_meta": "Meta"}, {"location_id": 2, "sensor_id": 2, ...}</code></pre>
+
+    <h3>/api/v1/sensor/:id (GET)</h3>
+    <p>Obtener un sensor por ID.</p>
+    <pre><code>curl /api/v1/sensor/1?company_api_key=clave_api</code></pre>
+    <p>Salida:</p>
+    <pre><code>{"location_id": 1, "sensor_id": 1, "sensor_name": "Sensor 1", "sensor_category": "Categoría", "sensor_meta": "Meta"}</code></pre>
+
+    <h3>/api/v1/sensor/:id (PUT)</h3>
+    <p>Actualizar un sensor.</p>
+    <pre><code>curl -X PUT /api/v1/sensor/:id -d '{"company_api_key": "clave_api", "sensor_name": "Nombre de Sensor Actualizado", "sensor_category": "Categoría Actualizada", "sensor_meta": "Meta Actualizado"}' -H 'Content-Type: application/json'</code></pre>
+    <p>Salida:</p>
+    <pre><code>{"changes": 1}</code></pre>
+
+    <h3>/api/v1/sensor/:id (DELETE)</h3>
+    <p>Eliminar un sensor.</p>
+    <pre><code>curl -X DELETE /api/v1/sensor/:id -d '{"company_api_key": "clave_api"}' -H 'Content-Type: application/json'</code></pre>
+    <p>Salida:</p>
+    <pre><code>{"changes": 1}</code></pre>
+
+    <h3>/api/v1/sensor_data</h3>
+    <p>Insertar datos de sensor.</p>
+    <pre><code>curl -X POST /api/v1/sensor_data -d '{"api_key": "clave_sensor", "json_data": [{"data_key": "clave1", "data_value": "valor1"}, {"data_key": "clave2", "data_value": "valor2"}]}' -H 'Content-Type: application/json'</code></pre>
+    <p>Salida:</p>
+    <pre><code>{"success": true}</code></pre>
+
+    <h3>/api/v1/sensor_data</h3>
+    <p>Consultar datos de sensor.</p>
+    <pre><code>curl /api/v1/sensor_data?company_api_key=clave_api&sensor_id=1&from=timestamp1&to=timestamp2</code></pre>
+    <p>Salida:</p>
+    <pre><code>[{"sensor_id": 1, "data_key": "clave1", "data_value": "valor1", "timestamp": timestamp1}, {"sensor_id": 1, "data_key": "clave2", "data_value": "valor2", "timestamp": timestamp2}, ...]</code></pre>
+
+</body>
+</html>
