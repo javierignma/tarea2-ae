@@ -337,7 +337,7 @@ app.delete('/api/v1/sensor/:id', (req, res) => {
 
 // Insertar datos del sensor
 app.post('/api/v1/sensor_data', (req, res) => {
-    const { api_key, json_data } = req.body;
+    const { sensor_api_key, json_data } = req.body;
 
     // Verificar si se recibió json_data y es un array
     if (!Array.isArray(json_data)) {
@@ -345,7 +345,7 @@ app.post('/api/v1/sensor_data', (req, res) => {
     }
 
     // Verificar si el sensor_api_key es válido
-    db.get('SELECT * FROM Sensor WHERE sensor_api_key = ?', [api_key], (err, row) => {
+    db.get('SELECT * FROM Sensor WHERE sensor_api_key = ?', [sensor_api_key], (err, row) => {
         if (err || !row) {
             return res.status(401).json({ error: 'Unauthorized' });
         }
