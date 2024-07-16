@@ -387,36 +387,27 @@ app.get('/api/v1/sensor_data', (req, res) => {
     const { company_api_key, from, to, sensor_id } = req.query;
 
     // Convertir from y to a timestamps si es necesario
-    const fromEpoch = parseInt(from, 10);
-    const toEpoch = parseInt(to, 10);
+    const fromTimestamp = parseInt(from, 10);
+    const toTimestamp = parseInt(to, 10);
 
     // Verificar la validez de company_api_key
     db.get('SELECT * FROM Company WHERE company_api_key = ?', [company_api_key], (err, row) => {
-        if (err) {
-            return res.status(500).json({ error: 'Database error' });
-        }
-        if (!row) {
+        if (err || !row) {
             return res.status(401).json({ error: 'Unauthorized' });
         }
 
-        // Validar que los parámetros necesarios estén presentes
-        if (!sensor_id) {
-            return res.status(400).json({ error: 'Missing required query parameters' });
-        }
-
         // Obtener los datos del sensor según los parámetros
-        let query = `
-            SELECT *
-            FROM Sensor_Data
-            WHERE sensor_id = ?
-            AND timestamp >= datetime(?, 'unixepoch')
-            AND timestamp <= datetime(?, 'unixepoch')
-        `;
-        const params = [sensor_id, fromEpoch, toEpoch];
+        let query = 'SELECT * FROM Sensor_Data WHERE sensor_id = ?';
+        const params = [sensor_id];
+
+        if (from && to) {
+            query += ' AND timestamp BETWEEN ? AND ?';
+            params.push(fromTimestamp, toTimestamp);
+        }
 
         db.all(query, params, (err, rows) => {
             if (err) {
-                return res.status(500).json({ error: 'Database error' });
+                return res.status(500).json({ error: err.message });
             }
             res.json(rows);
         });
