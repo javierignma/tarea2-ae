@@ -386,9 +386,9 @@ app.post('/api/v1/sensor_data', (req, res) => {
 app.get('/api/v1/sensor_data', (req, res) => {
     const { company_api_key, from, to, sensor_id } = req.query;
 
-    // Convertir from y to a timestamps si es necesario
-    const fromTimestamp = parseInt(from, 10);
-    const toTimestamp = parseInt(to, 10);
+    // Convertir from y to a timestamps en formato DATETIME para SQLite
+    const fromTimestamp = new Date(parseInt(from, 10) * 1000).toISOString();
+    const toTimestamp = new Date(parseInt(to, 10) * 1000).toISOString();
 
     // Verificar la validez de company_api_key
     db.get('SELECT * FROM Company WHERE company_api_key = ?', [company_api_key], (err, row) => {
