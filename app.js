@@ -216,7 +216,7 @@ app.put('/api/v1/location/:id', (req, res) => {
 // Eliminar una ubicación
 app.delete('/api/v1/location/:id', (req, res) => {
     const { id } = req.params;
-    const { company_api_key } = req.query;
+    const { company_api_key } = req.body;
 
     // Verificar la validez de company_api_key
     db.get('SELECT * FROM Company WHERE company_api_key = ?', [company_api_key], (err, row) => {
@@ -319,7 +319,7 @@ app.put('/api/v1/sensor/:id', (req, res) => {
 // Eliminar un sensor
 app.delete('/api/v1/sensor/:id', (req, res) => {
     const { id } = req.params;
-    const { company_api_key } = req.query;
+    const { company_api_key } = req.body;
     // Verificar la validez de company_api_key
     db.get('SELECT * FROM Company WHERE company_api_key = ?', [company_api_key], (err, row) => {
         if (err || !row) {
