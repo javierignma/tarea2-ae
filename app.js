@@ -438,6 +438,13 @@ function isAuthenticated(req, res, next) {
     });
 } 
 
+// Middleware de manejo de errores global
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ error: 'Internal Server Error' });
+});
+
+
 // Iniciar el servidor
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
