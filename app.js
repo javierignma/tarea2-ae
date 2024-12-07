@@ -2,6 +2,7 @@ const express = require('express');
 const exphbs = require('express-handlebars');
 const sqlite3 = require('sqlite3').verbose();
 const jwt = require('jsonwebtoken');
+const bodyParser = require('body-parser');
 const path = require('path');
 const handlebarsHelpers = require('handlebars-helpers')();
 
@@ -25,8 +26,8 @@ app.engine('hbs', exphbs.engine({
 
 app.set('view engine', 'hbs');
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // Clave secreta para firmar los tokens
 const SECRET_KEY = 'eaCtfdrrayY0h12MWkcyVorAfM9Pf2lrKeXQAroaxho5hd4GgjOCvDY//w7+tBoMP2IJMpbFLGu1mw/d0y2Bew==';
@@ -49,8 +50,6 @@ app.get('/api/v1/es', (req, res) => {
 // Crear nuevo admin
 app.post('/api/v1/register', (req, res) => {
     const { Username, Password } = req.body;
-
-    console.log("[/api/v1/register] body: ", req.body);
 
     console.log("[/api/v1/register] Username: "+Username+" Password: "+Password);
     
@@ -432,7 +431,6 @@ function isAuthenticated(req, res, next) {
 
     jwt.verify(token, SECRET_KEY, (err, decoded) => {
         if (err) {
-            console.log("[isAuthenticated] err: ", err);
             return res.status(401).json({ error: 'Failed to authenticate token.' });
         }
 
