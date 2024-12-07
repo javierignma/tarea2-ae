@@ -432,6 +432,7 @@ function isAuthenticated(req, res, next) {
 
     jwt.verify(token, SECRET_KEY, (err, decoded) => {
         if (err) {
+            console.log("[isAuthenticated] err: ", err);
             return res.status(401).json({ error: 'Failed to authenticate token.' });
         }
 
