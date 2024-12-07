@@ -50,6 +50,8 @@ app.get('/api/v1/es', (req, res) => {
 app.post('/api/v1/register', (req, res) => {
     const { Username, Password } = req.body;
 
+    console.log("[/api/v1/register] body: ", req.body);
+
     console.log("[/api/v1/register] Username: "+Username+" Password: "+Password);
     
     if (!Username || !Password) {
